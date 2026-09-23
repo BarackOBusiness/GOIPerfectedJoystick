@@ -1,0 +1,75 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <RuntimeIdentifier>BepInEx5</RuntimeIdentifier>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>A Getting Over It mod that rewrites the relationship between joystick input and the cursor</Description>
+    <AssemblyName>goi.barackobusiness.perfectedjoystick</AssemblyName>
+    <Product>GOI_Perfected_Joystick</Product>
+    <Version>1.0.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json;
+      https://nuget.bepinex.dev/v3/index.json;
+      https://nuget.samboy.dev/v3/index.json
+    </RestoreAdditionalProjectSources>
+    <RootNamespace>PerfectedJoystick</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>lib/Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Rewired_Core">
+      <HintPath>lib/Rewired_Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Modifies debug properties to properly label builds -->
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <OutputPath>bin/Debug_$(RuntimeIdentifier)/$(MSBuildProjectName)/</OutputPath>
+  </PropertyGroup>
+
+  <!-- Modifies release properties and copies thunderstore assets to be zipped up nicely -->
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <OutputPath>bin/Release_$(RuntimeIdentifier)/$(MSBuildProjectName)</OutputPath>
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+  <Target Name="ReleaseOutput" AfterTargets="Build" Condition="'$(Configuration)'=='Release'">
+    <ItemGroup>
+      <ThunderstoreAssets Include="assets/package/README.md;assets/package/icon.png;assets/package/manifest.json;assets/package/CHANGELOG.md" />
+      <DepsJson Include="$(OutDir)*.deps.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ThunderstoreAssets)" DestinationFolder="$(OutDir).." />
+    <Delete Files="@(DepsJson)" />
+  </Target>
+
+  <!-- Configurably build against BepInEx 5 or BepInEx 6 -->
+  <Choose>
+    <When Condition="'$(RuntimeIdentifier)'=='BepInEx6'">
+      <ItemGroup>
+        <PackageReference Include="BepInEx.Unity" Version="6.0.0-pre.1" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="BepInEx.Core" Version="5.*" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+	  <PackageReference Include="UnityEngine.Modules" Version="2020.3.25" IncludeAssets="compile" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
