@@ -10,31 +10,22 @@ namespace PerfectedJoystick;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class PerfectedJoystick : BaseUnityPlugin {
-    // private Player playerRef;
-
     private void Awake() {
         // Plugin startup logic
-        Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+        Logger.LogInfo("Your joystick has been perfected.");
     }
 
     private void OnEnable() {
         // Do patch
-        // SceneManager.sceneLoaded += OnSceneLoad;
         Patch.Hook(Logger);
     }
 
     private void OnDisable() {
         // Undo patch
-        // SceneManager.sceneLoaded -= OnSceneLoad;
         Patch.Unhook();
     }
 }
 
-// Current idea: set the joystick to absolute mode, then
-// within PlayerControl::FixedUpdate get its position, 
-// interpret it as a position in dio's local coordinates
-// maybe multiply by some fixed coefficient to scale it
-// set the cursor position to this coordinate every
 internal static class Patch {
     private const BindingFlags Private = BindingFlags.NonPublic;
     private const BindingFlags Instance = BindingFlags.Instance;
@@ -44,7 +35,7 @@ internal static class Patch {
 
     internal static void Hook(BepInEx.Logging.ManualLogSource logger) {
         _logger = logger;
-        _logger.LogDebug("Hooking `PlayerControl::FixedUpdate`");
+        _logger.LogInfo("Hooking `PlayerControl::FixedUpdate`");
         _hook = new ILHook(GetMethod<PlayerControl>("FixedUpdate", Private | Instance), FixedUpdate);
     }
 
