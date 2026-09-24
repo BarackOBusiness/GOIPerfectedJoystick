@@ -55,28 +55,31 @@ internal static class Patch {
     private static void FixedUpdate(ILContext il) {
         var cursor = new ILCursor(il);
 
-        if (cursor.TryGotoNext(MoveType.After,
-            x => x.MatchLdloca(6),
+        if (cursor.TryGotoNext(MoveType.Before,
             x => x.MatchLdarg(0),
-            x => x.MatchLdfld<PlayerControl>("player"),
-            x => x.MatchLdstr("StickLX"),
-            x => x.MatchCallvirt<Player>("GetAxis"),
-            x => x.MatchLdarg(0),
-            x => x.MatchLdfld<PlayerControl>("player"),
-            x => x.MatchLdstr("StickLY"),
-            x => x.MatchCallvirt<Player>("GetAxis")
+            x => x.MatchLdfld<PlayerControl>("fakeCursorRB"),
+            x => x.MatchLdloc(9),
+            x => x.MatchCallvirt<Rigidbody2D>("MovePosition")
         )) {
-            _logger.LogDebug("Hooked `PlayerControl::FixedUpdate` successfully");
-            cursor.Index += 1;
+            _logger.LogDebug("Hooked successfully");
+            cursor.RemoveRange(12);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.Emit<PlayerControl>(OpCodes.Ldfld, "fakeCursorRB");
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit<PlayerControl>(OpCodes.Ldfld, "player");
-            _logger.LogDebug("Emitted the shit out of that local var loadsession");
-            cursor.EmitDelegate((Player player) => {
-                _logger.LogDebug($"Joystick input: [{player.GetAxis("StickLX")}, {player.GetAxis("StickLY")}]");
+            cursor.EmitDelegate((PlayerControl self, Rigidbody2D rb, Player player) => {
+                Vector2 stick = new Vector2(player.GetAxis("StickLX"), player.GetAxis("StickLY"));
+                stick = Vector2.ClampMagnitude(stick, 1f);
+                bool inMotion = stick.sqrMagnitude > 0.01f;
+                stick *= 3.5f; // scale to normal cursor range limit
+                Vector2 target = inMotion?
+                    (Vector2)self.transform.TransformPoint(new Vector3(stick.x, stick.y, 0f)) :
+                    Vector2.Lerp(rb.position, (Vector2)self.tip.position, 0.5f);
+                rb.MovePosition(target);
             });
-            _logger.LogDebug($"Well no problems here {cursor.ToString()}");
         } else {
-            _logger.LogError("Failed to hook `PlayerControl::FixedUpdate`");
+            _logger.LogError("Failed to hook");
         }
     }
 
