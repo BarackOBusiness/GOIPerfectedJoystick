@@ -1,7 +1,7 @@
 # Changelog
 
-## [1.0.0] - yyyy-mm-dd
+## [1.0.0] - 2026-09-26
 
 ### Added
 
-- The goods
+- Joystick input 1:1 mapping to the cursor
