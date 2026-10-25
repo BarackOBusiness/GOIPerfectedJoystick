@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using System.ComponentModel;
 using BepInEx;
 using BepInEx.Configuration;
 using Mono.Cecil.Cil;
@@ -11,25 +10,18 @@ using Rewired;
 
 namespace PerfectedJoystick;
 
-public enum Stick {
-    // Hopefully this should display as left and right in the config file
-    [Description("Left")]
-    StickL,
-    [Description("Right")]
-    StickR
-}
-
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public sealed class Plugin : BaseUnityPlugin {
     public static Plugin Instance { get; private set; }
 
-    public ConfigEntry<Stick> Stick { get; private set; }
+    public ConfigEntry<string> Stick { get; private set; }
     private ILHook _hook;
 
     private void Awake() {
         Instance = this;
-        Stick = Config.Bind("", "Stick Selection", PerfectedJoystick.Stick.StickL,
-            "Which joystick on the controller to read input from.");
+        Stick = Config.Bind("", "Stick Selection", "Left", new ConfigDescription(
+            "Which joystick on the controller to read input from.",
+            new AcceptableValueList<string>("Left", "Right")));
         Logger.LogInfo("Your joystick has been perfected.");
     }
 
@@ -64,9 +56,9 @@ public sealed class Plugin : BaseUnityPlugin {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.Emit<PlayerControl>(OpCodes.Ldfld, "player");
                 cursor.EmitDelegate((PlayerControl self, Rigidbody2D rb, Player player) => {
-                    Vector2 stick = new Vector2(
-                        player.GetAxis($"{Instance.Stick.Value.ToString()}X"),
-                        player.GetAxis($"{Instance.Stick.Value.ToString()}Y")
+                    Vector2 stick = new Vector2( // Stick{L,R}{X,Y}
+                        player.GetAxis($"Stick{Instance.Stick.Value.Substring(0, 1)}X"),
+                        player.GetAxis($"Stick{Instance.Stick.Value.Substring(0, 1)}Y")
                     );
                     stick = Vector2.ClampMagnitude(stick, 1f);
                     bool inMotion = stick.sqrMagnitude > 0.01f;

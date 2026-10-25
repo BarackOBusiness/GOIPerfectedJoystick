@@ -1,7 +1,8 @@
 {
   "name": "GOI_Perfected_Joystick",
-  "description": "A mod that rewrites the relationship between joystick input and the cursor",
+  "description": "Unify the joystick and cursor mechanics as it should've always been.",
   "version_number": "1.0.0",
+  "website_url": "https://github.com/BarackOBusiness/GOIPerfectedJoystick",
   "dependencies": [
     "BepInEx-BepInExPack-5.4.2305"
   ]

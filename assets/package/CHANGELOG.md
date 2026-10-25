@@ -5,4 +5,5 @@
 ### Added
 
 - Joystick input 1:1 mapping to the cursor
+- Cursor stops on joystick return to center
 - Configurable which joystick to use
